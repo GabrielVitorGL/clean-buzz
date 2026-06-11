@@ -1,6 +1,5 @@
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import chromium from '@sparticuz/chromium';
 
 puppeteer.use(StealthPlugin());
 
@@ -27,6 +26,8 @@ export default async function handler(req, res) {
     let browser = null;
 
     try {
+        const chromium = (await import('@sparticuz/chromium')).default;
+
         browser = await puppeteer.launch({
             args: chromium.args,
             defaultViewport: chromium.defaultViewport,
@@ -38,7 +39,6 @@ export default async function handler(req, res) {
         const page = await browser.newPage();
 
         await page.goto(baseURL, { waitUntil: 'domcontentloaded', timeout: 8000 });
-
         await page.waitForSelector('.copy', { timeout: 8000 });
 
         const finalUrl = await page.evaluate(async (url) => {
