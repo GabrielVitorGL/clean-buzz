@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 
+	fhttp "github.com/bogdanfinn/fhttp"
 	tls_client "github.com/bogdanfinn/tls-client"
 	"github.com/bogdanfinn/tls-client/profiles"
 )
@@ -15,13 +16,12 @@ var tokenRegex = regexp.MustCompile(`\?t=([A-Za-z0-9._-]+)`)
 
 func Handler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 
 	rawPath := strings.Trim(r.URL.Path, "/")
-	
+
 	if rawPath == "" || rawPath == "api" {
-		http.Error(w, "Error: Provide the file ID or URL in the path. Ex: /pdt0m2rifdmp", http.StatusBadRequest)
+		http.Error(w, "Error: Provide the file ID or URL in the path", http.StatusBadRequest)
 		return
 	}
 
@@ -33,21 +33,26 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	baseURL := fmt.Sprintf("https://bzzhr.to/%s", fileID)
+	domain := "buzzheavier.com"
+	if strings.Contains(rawPath, "bzzhr.to") {
+		domain = "bzzhr.to"
+	}
+
+	baseURL := fmt.Sprintf("https://%s/%s", domain, fileID)
 
 	options := []tls_client.HttpClientOption{
 		tls_client.WithTimeoutSeconds(15),
 		tls_client.WithClientProfile(profiles.Chrome_120),
 		tls_client.WithNotFollowRedirects(),
 	}
-    
+
 	client, err := tls_client.NewHttpClient(tls_client.NewNoopLogger(), options...)
 	if err != nil {
 		http.Error(w, "Error: Failed to create TLS client", http.StatusInternalServerError)
 		return
 	}
 
-	req1, _ := http.NewRequest(http.MethodGet, baseURL, nil)
+	req1, _ := fhttp.NewRequest(fhttp.MethodGet, baseURL, nil)
 	req1.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
 	resp1, err := client.Do(req1)
@@ -66,8 +71,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	token := matches[1]
 
 	downloadURL := fmt.Sprintf("%s/download?t=%s", baseURL, token)
-	req2, _ := http.NewRequest(http.MethodGet, downloadURL, nil)
 
+	req2, _ := fhttp.NewRequest(fhttp.MethodGet, downloadURL, nil)
 	req2.Header.Set("hx-request", "true")
 	req2.Header.Set("referer", baseURL)
 	req2.Header.Set("accept", "*/*")
@@ -91,6 +96,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Cache-Control", "s-maxage=345600, stale-while-revalidate")
-	
+
 	fmt.Fprint(w, finalURL)
 }
