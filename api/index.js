@@ -1,6 +1,8 @@
-import puppeteer from 'puppeteer-extra';
+import puppeteerCore from 'puppeteer-core';
+import { addExtra } from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
+const puppeteer = addExtra(puppeteerCore);
 puppeteer.use(StealthPlugin());
 
 export default async function handler(req, res) {
