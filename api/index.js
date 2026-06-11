@@ -1,11 +1,11 @@
-import puppeteerCore from 'puppeteer-core';
-import { addExtra } from 'puppeteer-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+const puppeteerCore = require('puppeteer-core');
+const { addExtra } = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 
 const puppeteer = addExtra(puppeteerCore);
 puppeteer.use(StealthPlugin());
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
 
@@ -28,6 +28,7 @@ export default async function handler(req, res) {
     let browser = null;
 
     try {
+        // O Sparticuz continua usando import dinâmico pois ele só funciona em ESM
         const chromium = (await import('@sparticuz/chromium')).default;
 
         browser = await puppeteer.launch({
