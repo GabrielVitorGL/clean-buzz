@@ -65,7 +65,12 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	bodyBytes, _ := io.ReadAll(resp1.Body)
 	matches := tokenRegex.FindStringSubmatch(string(bodyBytes))
 	if len(matches) < 2 {
-		http.Error(w, "Error: Security token not found", http.StatusNotFound)
+		bodyStr := string(bodyBytes)
+		if len(bodyStr) > 500 {
+			bodyStr = bodyStr[:500]
+		}
+		errMsg := fmt.Sprintf("Error: Security token not found.\nStatus Code: %d\nBody Preview: %s", resp1.StatusCode, bodyStr)
+		http.Error(w, errMsg, http.StatusNotFound)
 		return
 	}
 	token := matches[1]
