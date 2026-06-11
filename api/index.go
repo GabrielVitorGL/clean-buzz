@@ -53,7 +53,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req1, _ := fhttp.NewRequest(fhttp.MethodGet, baseURL, nil)
-	req1.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+	req1.Header.Set("User-Agent", "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)")
 
 	resp1, err := client.Do(req1)
 	if err != nil {
