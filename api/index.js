@@ -1,9 +1,5 @@
-const puppeteerCore = require('puppeteer-core');
 const { addExtra } = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-
-const puppeteer = addExtra(puppeteerCore);
-puppeteer.use(StealthPlugin());
 
 module.exports = async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -28,9 +24,18 @@ module.exports = async function handler(req, res) {
     let browser = null;
 
     try {
-        // O Sparticuz continua usando import dinâmico pois ele só funciona em ESM
-        const chromium = (await import('@sparticuz/chromium')).default;
+        // 1. Importação Dinâmica para os pacotes puramente ESM (Puppeteer 22+ e Sparticuz)
+        const puppeteerCoreImport = await import('puppeteer-core');
+        const puppeteerCore = puppeteerCoreImport.default || puppeteerCoreImport;
+        
+        const chromiumImport = await import('@sparticuz/chromium');
+        const chromium = chromiumImport.default || chromiumImport;
 
+        // 2. Injeta o plugin stealth (CJS) no core do puppeteer (ESM)
+        const puppeteer = addExtra(puppeteerCore);
+        puppeteer.use(StealthPlugin());
+
+        // 3. Inicializa o Chromium otimizado
         browser = await puppeteer.launch({
             args: chromium.args,
             defaultViewport: chromium.defaultViewport,
